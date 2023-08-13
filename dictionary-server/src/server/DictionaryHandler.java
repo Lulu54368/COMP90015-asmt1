@@ -1,10 +1,14 @@
 package server;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import server.exception.DuplicateException;
 import server.exception.EmptyKeyException;
 import server.exception.EmptyValueException;
 import server.exception.WordNotFoundException;
-
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
 
 public class DictionaryHandler {
@@ -44,5 +48,14 @@ public class DictionaryHandler {
             }
         }
         return null;
+    }
+    public synchronized static void initDictionaryFile(String filePath)
+            throws IOException, ParseException {
+        JSONParser parser = new JSONParser();
+        JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(filePath));
+        for(Object word: jsonObject.keySet()){
+            hs.put((String)word, (String)jsonObject.get(word));
+        }
+
     }
 }

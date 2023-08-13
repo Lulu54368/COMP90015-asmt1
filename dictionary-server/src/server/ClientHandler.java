@@ -1,13 +1,15 @@
 package server;
 
 import server.exception.*;
+import server.response.*;
 
 import java.io.*;
-import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.logging.Logger;
 
 public class ClientHandler implements Runnable{
     Socket clientSocket;
+
 
     public ClientHandler(Socket clientSocketSocket) {
         this.clientSocket = clientSocketSocket;
@@ -15,31 +17,54 @@ public class ClientHandler implements Runnable{
 
     @Override
     public void run() {
-        BufferedReader input;
-        BufferedWriter output;
-
+        BufferedReader input = null;
+        BufferedWriter output = null;
+        Response response;
+        RequestModel requestModel = new RequestModel();
         // try to set up client socket's I/O streams
         try {
             input = new BufferedReader(new InputStreamReader(this.clientSocket.getInputStream()));
             output = new BufferedWriter(new OutputStreamWriter(this.clientSocket.getOutputStream()));
-            RequestModel requestModel = ModelParser.parse(input);
+            requestModel = ModelParser.parse(input);
             RequestValidator.validateRequestBody(requestModel);
-            DictionaryHandler.doOperation(requestModel);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalRequestBodyException e) {
-            throw new RuntimeException(e);
-        } catch (EmptyKeyException e) {
-            throw new RuntimeException(e);
-        } catch (DuplicateException e) {
-            throw new RuntimeException(e);
-        } catch (EmptyValueException e) {
-            throw new RuntimeException(e);
-        } catch (WordNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+            String result = DictionaryHandler.doOperation(requestModel);
+            response = ResponseHandler.handleSuccess(result, requestModel.operation);
 
-        // Send a string!
+        } catch (IOException e) {
+            System.err.println("ClientHandlerError: unable to read client stream, closing socket and exiting");
+            if (!this.clientSocket.isClosed()) {
+                try {
+                    this.clientSocket.close();
+                } catch (IOException err) {
+                    System.err.println("ClientHandlerError: unable to close client socket, exiting");
+                }
+            }
+            return;
+        } catch (IllegalRequestBodyException e) {
+            response = new ErrorResponse(ResponseCode.BAD_REQUEST, e.getMessage());
+        } catch (EmptyKeyException |DuplicateException|EmptyValueException|WordNotFoundException e) {
+            response = ResponseHandler.handleFailure(e, requestModel.operation);
+        }
+        //Send response to the client
+        try {
+            output.write(response.toString());
+            output.flush();
+        } catch (IOException e) {
+            System.err.println("Unable to write response to the client");
+        }
+        try {
+            if (input != null) {
+                input.close();
+            }
+            if (output != null) {
+                output.close();
+            }
+            if (!this.clientSocket.isClosed()) {
+                this.clientSocket.close();
+            }
+        } catch (IOException e) {
+            System.err.println("ClientHandlerError: unable to close client socket, exiting");
+        }
 
 
     }
