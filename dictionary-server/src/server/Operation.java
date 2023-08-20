@@ -10,6 +10,10 @@ public enum Operation {
     GET("get");
     private final String value;
 
+    public String getValue() {
+        return value;
+    }
+
     Operation(String value) {
         this.value = value;
     }

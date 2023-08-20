@@ -8,6 +8,14 @@ public class SuccessResponse extends Response{
         this.definition = definition;
     }
 
+    @Override
+    public String toString() {
+        return "SuccessResponse{" +
+                "definition='" + definition + '\'' +
+                ", responseCode=" + responseCode +
+                '}';
+    }
+
     public ResponseCode getResponseCode() {
         return responseCode;
     }

@@ -1,11 +1,11 @@
 package server;
 
+import org.json.simple.parser.ParseException;
 import server.exception.*;
 import server.response.*;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.logging.Logger;
 
 public class ClientHandler implements Runnable{
     Socket clientSocket;
@@ -25,10 +25,15 @@ public class ClientHandler implements Runnable{
         try {
             input = new BufferedReader(new InputStreamReader(this.clientSocket.getInputStream()));
             output = new BufferedWriter(new OutputStreamWriter(this.clientSocket.getOutputStream()));
-            requestModel = ModelParser.parse(input);
+            String requestBody = input.readLine();
+            requestModel = ModelParser.parse(requestBody);
+            System.out.println("parsed successfully and the request model is " + requestModel.toString());
             RequestValidator.validateRequestBody(requestModel);
             String result = DictionaryHandler.doOperation(requestModel);
+            System.out.println("result: "+ result);
             response = ResponseHandler.handleSuccess(result, requestModel.operation);
+            System.out.println("response: "+ response);
+
 
         } catch (IOException e) {
             System.err.println("ClientHandlerError: unable to read client stream, closing socket and exiting");
@@ -40,14 +45,16 @@ public class ClientHandler implements Runnable{
                 }
             }
             return;
-        } catch (IllegalRequestBodyException e) {
+        } catch (IllegalRequestBodyException|ParseException e) {
             response = new ErrorResponse(ResponseCode.BAD_REQUEST, e.getMessage());
+            System.err.println("The request body is illegal");
         } catch (EmptyKeyException |DuplicateException|EmptyValueException|WordNotFoundException e) {
+            System.err.println("Exception thrown: "+e.getMessage());
             response = ResponseHandler.handleFailure(e, requestModel.operation);
         }
         //Send response to the client
         try {
-            output.write(response.toString());
+            output.write(response.toString()+"\n");
             output.flush();
         } catch (IOException e) {
             System.err.println("Unable to write response to the client");

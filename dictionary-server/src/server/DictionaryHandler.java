@@ -20,7 +20,7 @@ public class DictionaryHandler {
                 if(!hs.containsKey(requestModel.key)){
                     throw new WordNotFoundException();
                 }
-                return hs.get(requestModel.value);
+                return hs.get(requestModel.key);
             }
             case CREATE -> {
                 if(requestModel.key == ""){
@@ -29,7 +29,7 @@ public class DictionaryHandler {
                 if(requestModel.value == ""){
                     throw new EmptyValueException();
                 }
-                if(!hs.containsKey(requestModel.value)){
+                if(hs.containsKey(requestModel.value)){
                     throw new DuplicateException();
                 }
                 hs.put(requestModel.key, requestModel.value);
@@ -44,7 +44,7 @@ public class DictionaryHandler {
                 if(!hs.containsKey(requestModel.key)){
                     throw new WordNotFoundException();
                 }
-                hs.put(hs.get(requestModel.key), requestModel.value);
+                hs.put(requestModel.key, requestModel.value);
             }
         }
         return null;
