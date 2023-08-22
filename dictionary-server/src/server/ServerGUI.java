@@ -9,9 +9,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 
 public class ServerGUI extends JFrame {
-    private boolean isRunning;
-    private boolean shouldServerStart;
 
+    private boolean isServerStart = false;
     private int threadNumber;
 
     private ServerSocket serverSocket;
@@ -21,9 +20,8 @@ public class ServerGUI extends JFrame {
     private JPanel serverGUIPanel;
     private JButton threadNumberSetButton;
     private final int DEFAULT_THREAD_NUMBER=10;
+    private Thread serverThread;
     public ServerGUI() {
-        this.isRunning = true;
-        this.shouldServerStart = false;
         this.threadNumber = 0;
         this.serverSocket = null;
         this.initialiseGUI();
@@ -32,7 +30,6 @@ public class ServerGUI extends JFrame {
         this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                isRunning = false;
                 if (serverSocket != null) {
                     try {
                         serverSocket.close();
@@ -45,11 +42,24 @@ public class ServerGUI extends JFrame {
         startButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                shouldServerStart = true;
-                startButton.setEnabled(false);
-                threadNumberSetButton.setEnabled(false);
-                JOptionPane.showMessageDialog(ServerGUI.this,
-                        "The server started!" );
+                if(startButton.getText() == "start" && isServerStart == false){
+                    serverThread = new Thread(()->DictionaryServer.startServer());
+                    serverThread.start();
+                    isServerStart = true;
+                    JOptionPane.showMessageDialog(ServerGUI.this,
+                            "The server started!" );
+                    startButton.setText("stop");
+                }
+                else if(startButton.getText() == "stop" && isServerStart == true){
+                    serverThread.interrupt();
+                    serverThread = new Thread(()->DictionaryServer.stopServer());
+                    serverThread.start();
+                    JOptionPane.showMessageDialog(ServerGUI.this,
+                            "The server stopped!" );
+                    isServerStart = false;
+                    startButton.setText("start");
+                }
+
             }
         });
 
@@ -70,22 +80,20 @@ public class ServerGUI extends JFrame {
         });
     }
 
-    public boolean isRunning() {
-        return this.isRunning;
-    }
 
-    public boolean shouldServerStart() {
-        return this.shouldServerStart;
+    public boolean isServerStart() {
+        return isServerStart;
     }
-
 
     /** Prepare and display the client GUI. */
     private void initialiseGUI() {
+        System.out.println("initialize the gui...");
         setContentPane(serverGUIPanel);
         setTitle("Dictionary Server GUI");
         setSize(640, 200);
         setLocationRelativeTo(null);
         setVisible(true);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
 
 

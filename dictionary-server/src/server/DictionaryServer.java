@@ -8,6 +8,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 public class DictionaryServer {
     private static int threadNumber = 10;
+    private static int portNumber;
+    private static ExecutorService executor;
+    private static ServerSocket s;
 
     public static void setThreadNumber(int threadNumber) {
         DictionaryServer.threadNumber = threadNumber;
@@ -19,7 +22,7 @@ public class DictionaryServer {
             System.exit(1);
         }
 
-        final int portNumber = Integer.parseInt(args[0]);
+        portNumber = Integer.parseInt(args[0]);
         final String filePath = args[1];
         //load file
         try{
@@ -30,28 +33,19 @@ public class DictionaryServer {
             System.err.println("Failed to load the file!");
             System.exit(-1);
         }
-        // initialise the GUI and wait until we are allowed to start the server
-        ServerGUI gui = new ServerGUI();
-        while (gui.isRunning() && !gui.shouldServerStart()) {
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                System.err.println("ServerError: main is interrupted, exiting");
-                System.exit(1);
-            }
-        }
+        //creating a new thread initializing gui
+        new Thread(()->new ServerGUI()).start();
 
-        // if GUI is no longer running, we shut down the server
-        if (!gui.isRunning()) {
-            System.out.println("Server shutdown: exiting");
-            System.exit(0);
-        }
-        ExecutorService executor = Executors.newFixedThreadPool(threadNumber);
 
+
+
+    }
+    public static void startServer() {
+
+        executor = Executors.newFixedThreadPool(threadNumber);
         try{
-            //check whether the port is valid
-            ServerSocket s = new ServerSocket(portNumber);
-            System.out.println("listening...");
+            s = new ServerSocket(portNumber);
+
             while (true) {
                 Socket clientSocket = s.accept();
                 System.out.println("Accepted connection from " + clientSocket.getInetAddress());
@@ -59,15 +53,27 @@ public class DictionaryServer {
                 executor.execute(clientHandler);
             }
         }catch (IOException e){
-            System.err.println("IO exception thrown while setting up server");
-            System.exit(1);
-        }finally{
+            if(!Thread.interrupted()){
+                System.err.println("IO exception thrown while accepting request");
+            }
+        } finally {
             executor.shutdown();
         }
 
 
+    }
+    public static void stopServer()  {
+        executor.shutdown();
+        try{
+            if(!s.isClosed()){
+                s.close();
+            }
+        }catch (IOException e){
+            System.err.println("Error occurred while closing the server");
+            return;
+        }
 
-
+        System.out.println("The server stopped.");
     }
 
 
