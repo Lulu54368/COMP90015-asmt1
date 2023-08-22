@@ -36,9 +36,6 @@ public class DictionaryServer {
         //creating a new thread initializing gui
         new Thread(()->new ServerGUI()).start();
 
-
-
-
     }
     public static void startServer() {
 

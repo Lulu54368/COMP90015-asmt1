@@ -33,7 +33,9 @@ public class ClientHandler implements Runnable{
             System.out.println("result: "+ result);
             response = ResponseHandler.handleSuccess(result, requestModel.operation);
             System.out.println("response: "+ response);
-
+            System.out.println(response);
+            output.write(response.toString()+"\n");
+            output.flush();
 
         } catch (IOException e) {
             System.err.println("ClientHandlerError: unable to read client stream, closing socket and exiting");
@@ -51,14 +53,9 @@ public class ClientHandler implements Runnable{
         } catch (EmptyKeyException |DuplicateException|EmptyValueException|WordNotFoundException e) {
             System.err.println("Exception thrown: "+e.getMessage());
             response = ResponseHandler.handleFailure(e, requestModel.operation);
+
         }
-        //Send response to the client
-        try {
-            output.write(response.toString()+"\n");
-            output.flush();
-        } catch (IOException e) {
-            System.err.println("Unable to write response to the client");
-        }
+
         try {
             if (input != null) {
                 input.close();
