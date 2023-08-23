@@ -31,4 +31,8 @@ public class SuccessResponse extends Response{
     public void setDefinition(String definition) {
         this.definition = definition;
     }
+    @Override
+    public String getResult(){
+        return definition;
+    }
 }

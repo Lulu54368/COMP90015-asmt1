@@ -15,4 +15,8 @@ public class ErrorResponse extends Response{
         this.responseCode = responseCode;
         this.message = message;
     }
+    @Override
+    public String getResult(){
+        return message;
+    }
 }

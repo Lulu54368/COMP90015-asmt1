@@ -1,4 +1,5 @@
 package server;
+import org.apache.maven.settings.Server;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
@@ -21,7 +22,6 @@ public class DictionaryServer {
             System.err.println("Please enter proper input!");
             System.exit(1);
         }
-
         portNumber = Integer.parseInt(args[0]);
         final String filePath = args[1];
         //load file
@@ -37,25 +37,30 @@ public class DictionaryServer {
         new Thread(()->new ServerGUI()).start();
 
     }
-    public static void startServer() {
+    public static void startServer()  {
 
         executor = Executors.newFixedThreadPool(threadNumber);
         try{
-            s = new ServerSocket(portNumber);
+            s  = new ServerSocket(portNumber);
+        }catch (IOException e){
+            System.err.println("Error occurred when creating socket");
+        }
 
-            while (true) {
+        while(true){
+            try{
                 Socket clientSocket = s.accept();
                 System.out.println("Accepted connection from " + clientSocket.getInetAddress());
                 ClientHandler clientHandler = new ClientHandler(clientSocket);
                 executor.execute(clientHandler);
+
+            }catch (IOException e){
+                if(!Thread.interrupted()){
+                    System.err.println("IO exception thrown while accepting request");
+                }
+                break;
             }
-        }catch (IOException e){
-            if(!Thread.interrupted()){
-                System.err.println("IO exception thrown while accepting request");
-            }
-        } finally {
-            executor.shutdown();
         }
+
 
 
     }

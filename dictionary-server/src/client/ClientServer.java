@@ -1,7 +1,12 @@
 package client;
 
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import server.Operation;
+import server.RequestModel;
+import server.response.Response;
+import server.response.SuccessResponse;
 
 import java.io.*;
 import java.net.Socket;
@@ -43,29 +48,25 @@ public class ClientServer {
         obj.put("operation", operation.getValue());
         obj.put("key", word);
         obj.put("value", def);
-        return obj.toJSONString();
+        return obj.toString();
     }
     public static void submitRequest(Operation operation, String word, String def) {
         try{
             String requestBody = parseRequestBody(operation, word, def);
             System.out.println(requestBody);
-            os.write(requestBody);
+            os.write(requestBody+"\n");
             os.flush();
-        }catch (IOException e){
-            System.err.println("Error occurred submitting request");
-        }
-        //Read line need to be modified
-        try {
-            Thread.sleep(1000);
-            String result = is.readLine();
+            //need to be modified
+            String result =(String) ((JSONObject)(new JSONParser().parse(is.readLine()))).get("result");
             System.out.println("result is "+result);
             if(result != null)
-                clientGUI.setResultTextArea(is.readLine());
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+                clientGUI.setResultTextArea(result);
+        }catch (IOException e){
+            System.err.println("Error occurred submitting request");
+        }catch (ParseException e){
+            System.err.println("Error occurred parsing result");
         }
+
 
     }
 

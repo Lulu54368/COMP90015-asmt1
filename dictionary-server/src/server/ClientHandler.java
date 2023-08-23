@@ -1,5 +1,6 @@
 package server;
 
+import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import server.exception.*;
 import server.response.*;
@@ -25,17 +26,20 @@ public class ClientHandler implements Runnable{
         try {
             input = new BufferedReader(new InputStreamReader(this.clientSocket.getInputStream()));
             output = new BufferedWriter(new OutputStreamWriter(this.clientSocket.getOutputStream()));
-            String requestBody = input.readLine();
-            requestModel = ModelParser.parse(requestBody);
-            System.out.println("parsed successfully and the request model is " + requestModel.toString());
-            RequestValidator.validateRequestBody(requestModel);
-            String result = DictionaryHandler.doOperation(requestModel);
-            System.out.println("result: "+ result);
-            response = ResponseHandler.handleSuccess(result, requestModel.operation);
-            System.out.println("response: "+ response);
-            System.out.println(response);
-            output.write(response.toString()+"\n");
-            output.flush();
+            String requestBody;
+            while ((requestBody = input.readLine()) != null) {
+                System.out.println("request body " + requestBody);
+                requestModel = ModelParser.parse(requestBody);
+                System.out.println("parsed successfully and the request model is " + requestModel.toString());
+                RequestValidator.validateRequestBody(requestModel);
+                String result = DictionaryHandler.doOperation(requestModel);
+                System.out.println("result: " + result);
+                response = ResponseHandler.handleSuccess(result, requestModel.operation);
+                System.out.println("response: " + response);
+                System.out.println(response.getJSONObject().toString());
+                output.write(response.getJSONObject().toString());
+                output.flush();
+            }
 
         } catch (IOException e) {
             System.err.println("ClientHandlerError: unable to read client stream, closing socket and exiting");
