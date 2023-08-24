@@ -17,7 +17,7 @@ public class Response {
     }
     public JSONObject getJSONObject(){
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("code", responseCode);
+        jsonObject.put("code", responseCode.getCode());
         jsonObject.put("result", getResult());
         return jsonObject;
     }

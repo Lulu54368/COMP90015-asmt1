@@ -37,7 +37,7 @@ public class ClientHandler implements Runnable{
                 response = ResponseHandler.handleSuccess(result, requestModel.operation);
                 System.out.println("response: " + response);
                 System.out.println(response.getJSONObject().toString());
-                output.write(response.getJSONObject().toString());
+                output.write(response.getJSONObject().toString()+ "\n");
                 output.flush();
             }
 
@@ -54,9 +54,24 @@ public class ClientHandler implements Runnable{
         } catch (IllegalRequestBodyException|ParseException e) {
             response = new ErrorResponse(ResponseCode.BAD_REQUEST, e.getMessage());
             System.err.println("The request body is illegal");
+            try {
+                output.write(response.getJSONObject().toString()+ "\n");
+                output.flush();
+            } catch (IOException ex) {
+                System.err.println("unable to write to the client");
+            }
+
         } catch (EmptyKeyException |DuplicateException|EmptyValueException|WordNotFoundException e) {
             System.err.println("Exception thrown: "+e.getMessage());
             response = ResponseHandler.handleFailure(e, requestModel.operation);
+            try {
+                output.write(response.getJSONObject().toString()+ "\n");
+                output.flush();
+            } catch (IOException ex) {
+                System.err.println("unable to write to the client");
+
+            }
+
 
         }
 

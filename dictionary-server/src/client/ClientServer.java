@@ -56,11 +56,15 @@ public class ClientServer {
             System.out.println(requestBody);
             os.write(requestBody+"\n");
             os.flush();
+            String result;
+            if((result = is.readLine() )!= null){
+                result =(String) ((JSONObject)(new JSONParser().parse(result))).get("result");
+                System.out.println("result is "+result);
+                if(result != null)
+                    clientGUI.setResultTextArea(result);
+            }
             //need to be modified
-            String result =(String) ((JSONObject)(new JSONParser().parse(is.readLine()))).get("result");
-            System.out.println("result is "+result);
-            if(result != null)
-                clientGUI.setResultTextArea(result);
+
         }catch (IOException e){
             System.err.println("Error occurred submitting request");
         }catch (ParseException e){
