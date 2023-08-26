@@ -1,10 +1,11 @@
 package client;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import server.Operation;
-import server.exception.IllegalOperationException;
 import server.exception.IllegalRequestBodyException;
 
 import java.io.*;
@@ -16,11 +17,10 @@ public class ClientServer {
     private static ClientGUI clientGUI;
     private static String serverHostname;
     private static Integer serverPortNumber;
+    private  static Logger logger = LogManager.getLogger(ClientServer.class);
     public static void main(String[] args) {
-
-
         if (args.length < 2) {
-            System.err.println("Please enter proper arguments");
+            logger.error("Please enter proper arguments");
             System.exit(1);
         }
 
@@ -30,7 +30,7 @@ public class ClientServer {
             buildConnection(serverHostname, serverPortNumber);
             clientGUI = new ClientGUI();
         } catch (IOException e) {
-            System.err.println("ClientError: unable to connect to server at address '" + serverHostname + "' on port "
+            logger.error("ClientError: unable to connect to server at address '" + serverHostname + "' on port "
                     + serverPortNumber + ", exiting");
             System.exit(1);
         }
@@ -62,7 +62,7 @@ public class ClientServer {
         String response = null;
         try{
             String requestBody = parseRequestBody(operation, word, def);
-            System.out.println(requestBody);
+            logger.debug("request body is "+requestBody);
             os.write(requestBody+"\n");
             os.flush();
             String result;
@@ -70,7 +70,7 @@ public class ClientServer {
                 ClientResultHandler clientResultHandler = new ClientResultHandler
                         (operation, (JSONObject)(new JSONParser().parse(result)));
                 response = clientResultHandler.handleResponse();
-                System.out.println("result is "+response);
+                logger.info("result is "+response);
                 clientGUI.setResultTextArea(response);
             }
 
@@ -81,18 +81,18 @@ public class ClientServer {
                 submitRequest(operation, word, def);
 
             }catch (IOException ioException){
-                System.err.println("Error occurred building connection");
+                logger.error("Error occurred building connection");
                 System.exit(1);
             }
 
         }
         catch (IllegalRequestBodyException e){
             response = "Error occurred submitting request";
-            System.err.println("Error occurred submitting request" + e.getMessage());
+            logger.error("Error occurred submitting request" + e.getMessage());
             clientGUI.setResultTextArea(response);
         }catch (ParseException e){
             response = "Error occurred parsing result";
-            System.err.println("Error occurred parsing result " + e.getMessage());
+            logger.error("Error occurred parsing result " + e.getMessage());
             clientGUI.setResultTextArea(response);
         }
 

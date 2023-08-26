@@ -1,6 +1,8 @@
 package server;
 
-import org.json.simple.JSONObject;
+import org.apache.logging.log4j.LogManager;
+
+import org.apache.logging.log4j.Logger;
 import org.json.simple.parser.ParseException;
 import server.exception.*;
 import server.response.*;
@@ -10,6 +12,7 @@ import java.net.Socket;
 
 public class ClientHandler implements Runnable{
     Socket clientSocket;
+    private static Logger logger = LogManager.getLogger(ClientHandler.class);
 
 
     public ClientHandler(Socket clientSocketSocket) {
@@ -28,47 +31,47 @@ public class ClientHandler implements Runnable{
             output = new BufferedWriter(new OutputStreamWriter(this.clientSocket.getOutputStream()));
             String requestBody;
             while ((requestBody = input.readLine()) != null) {
-                System.out.println("request body " + requestBody);
+                logger.debug("request body " + requestBody);
                 requestModel = ModelParser.parse(requestBody);
-                System.out.println("parsed successfully and the request model is " + requestModel.toString());
+                logger.debug("parsed successfully and the request model is " + requestModel.toString());
                 RequestValidator.validateRequestBody(requestModel);
                 String result = DictionaryHandler.doOperation(requestModel);
-                System.out.println("result: " + result);
+                logger.debug("result: " + result);
                 response = ResponseHandler.handleSuccess(result, requestModel.operation);
-                System.out.println("response: " + response);
-                System.out.println(response.getJSONObject().toString());
+                logger.debug("response: " + response);
+                logger.debug(response.getJSONObject().toString());
                 output.write(response.getJSONObject().toString()+ "\n");
                 output.flush();
             }
 
         } catch (IOException e) {
-            System.err.println("ClientHandlerError: unable to read client stream, closing socket and exiting");
+            logger.debug("ClientHandlerError: unable to read client stream, closing socket and exiting");
             if (!this.clientSocket.isClosed()) {
                 try {
                     this.clientSocket.close();
                 } catch (IOException err) {
-                    System.err.println("ClientHandlerError: unable to close client socket, exiting");
+                    logger.error("ClientHandlerError: unable to close client socket, exiting");
                 }
             }
             return;
         } catch (IllegalRequestBodyException|ParseException e) {
             response = new ErrorResponse(ResponseCode.BAD_REQUEST, e.getMessage());
-            System.err.println("The request body is illegal");
+            logger.error("The request body is illegal");
             try {
                 output.write(response.getJSONObject().toString()+ "\n");
                 output.flush();
             } catch (IOException ex) {
-                System.err.println("unable to write to the client");
+                logger.error("unable to write to the client");
             }
 
         } catch (EmptyKeyException |DuplicateException|EmptyValueException|WordNotFoundException e) {
-            System.err.println("Exception thrown: "+e.getMessage());
+            logger.error("Exception thrown: "+e.getMessage());
             response = ResponseHandler.handleFailure(e, requestModel.operation);
             try {
                 output.write(response.getJSONObject().toString()+ "\n");
                 output.flush();
             } catch (IOException ex) {
-                System.err.println("unable to write to the client");
+                logger.error("unable to write to the client");
 
             }
 
@@ -86,7 +89,7 @@ public class ClientHandler implements Runnable{
                 this.clientSocket.close();
             }
         } catch (IOException e) {
-            System.err.println("ClientHandlerError: unable to close client socket, exiting");
+            logger.error("ClientHandlerError: unable to close client socket, exiting");
         }
 
 

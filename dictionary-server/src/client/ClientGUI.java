@@ -1,5 +1,7 @@
 package client;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import server.Operation;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -25,14 +27,13 @@ public class ClientGUI extends JFrame{
     private JLabel resultLabel;
     private JPanel clientPanel;
 
-
+    Logger logger = LogManager.getLogger(ClientGUI.class);
     public ClientGUI() {
         this.initialiseGUI();
 
         setOperationButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println(operationOption.getSelectedIndex());
                 operationInUse = Arrays.asList(Operation.GET, Operation.CREATE, Operation.UPDATE, Operation.DELETE)
                         .get(operationOption.getSelectedIndex());
                 JOptionPane.showMessageDialog(ClientGUI.this, "Successfully set the operation!" );
@@ -77,7 +78,7 @@ public class ClientGUI extends JFrame{
     }
 
     private void initialiseGUI() {
-        System.out.println("initialize the gui...");
+        logger.info("initialize the gui...");
         setContentPane(clientPanel);
         setTitle("Dictionary Client GUI");
         setSize(640, 200);
