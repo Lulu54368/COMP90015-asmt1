@@ -17,30 +17,42 @@ public class DictionaryHandler {
             EmptyValueException, WordNotFoundException, DuplicateException {
         switch (requestModel.operation){
             case GET -> {
+                if(requestModel.key == "" || requestModel.key == null){
+                    throw new EmptyKeyException();
+                }
                 if(!hs.containsKey(requestModel.key)){
                     throw new WordNotFoundException();
                 }
                 return hs.get(requestModel.key);
             }
             case CREATE -> {
-                if(requestModel.key == ""){
+                if(requestModel.key == "" || requestModel.key == null){
                     throw new EmptyKeyException();
                 }
-                if(requestModel.value == ""){
+                if(requestModel.value == ""||requestModel.value == null){
                     throw new EmptyValueException();
                 }
-                if(hs.containsKey(requestModel.value)){
+                if(hs.containsKey(requestModel.key)){
                     throw new DuplicateException();
                 }
                 hs.put(requestModel.key, requestModel.value);
             }
             case DELETE -> {
+                if(requestModel.key == "" || requestModel.key == null){
+                    throw new EmptyKeyException();
+                }
                 if(!hs.containsKey(requestModel.key)){
                     throw new WordNotFoundException();
                 }
                 hs.remove(requestModel.key);
             }
             case UPDATE -> {
+                if(requestModel.key == "" || requestModel.key == null){
+                    throw new EmptyKeyException();
+                }
+                if(requestModel.value == ""||requestModel.value == null){
+                    throw new EmptyValueException();
+                }
                 if(!hs.containsKey(requestModel.key)){
                     throw new WordNotFoundException();
                 }

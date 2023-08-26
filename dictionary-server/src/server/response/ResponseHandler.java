@@ -33,8 +33,12 @@ public class ResponseHandler {
                 if(e instanceof  WordNotFoundException){
                     return new ErrorResponse(ResponseCode.NOTFOUND, e.getMessage());
                 }
+                else if(e instanceof EmptyValueException || e instanceof  EmptyKeyException){
+                    return new ErrorResponse(ResponseCode.BAD_REQUEST, e.getMessage());
+                }
             }
         }
+        System.err.println(e.getMessage());
         return new ErrorResponse(ResponseCode.INTERNAL_ERROR, e.getMessage());
     }
     public  static SuccessResponse handleSuccess(String definition, Operation operation){

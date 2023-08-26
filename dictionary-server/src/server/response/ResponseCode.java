@@ -1,5 +1,10 @@
 package server.response;
 
+import server.Operation;
+
+import java.util.HashMap;
+import java.util.Map;
+
 public enum ResponseCode {
     OK(200),
     CREATED(201),
@@ -15,4 +20,16 @@ public enum ResponseCode {
     public Integer getCode(){
         return code;
     }
+    private static final Map<Integer, ResponseCode> BY_VALUE = new HashMap<>();
+
+    static {
+        for (ResponseCode responseCode: values()) {
+            BY_VALUE.put(responseCode.getCode(), responseCode);
+        }
+    }
+
+    public static ResponseCode fromValue(Integer code) {
+        return BY_VALUE.get(code);
+    }
+
 }

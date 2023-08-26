@@ -1,14 +1,9 @@
 package client;
 
 import server.Operation;
-import server.ServerGUI;
-
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 public class ClientGUI extends JFrame{
@@ -62,7 +57,13 @@ public class ClientGUI extends JFrame{
         submitRequestButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new Thread(()->ClientServer.submitRequest(operationInUse, wordInUse, defInUse)).start();
+                try {
+                    Thread submitThread = new Thread(()->ClientServer.submitRequest(operationInUse, wordInUse, defInUse));
+                    submitThread.start();
+                    submitThread.join();
+                } catch (InterruptedException ex) {
+                    throw new RuntimeException(ex);
+                }
                 JOptionPane.showMessageDialog(ClientGUI.this, "Successfully submit the request!" );
 
 
